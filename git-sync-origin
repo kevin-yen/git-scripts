@@ -18,15 +18,3 @@ do
 done
 
 restore-branch
-
-# remote_branches=($(git ls-remote origin --heads refs/heads/${1}* | sed -r 's|^[0-9a-f]+\s*refs/heads/(.*)$|\1|g' | xargs))
-
-# for remote_branch in "${remote_branches[@]}"
-# do
-# 	if ! contains "${remote_branch}" "${local_branches[@]}"
-# 	then
-# 		git push origin --delete ${remote_branch}
-
-# 		printf "\n"
-# 	fi
-# done
