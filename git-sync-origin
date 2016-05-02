@@ -1,0 +1,32 @@
+#!/bin/bash
+
+. script-functions
+
+printf "Syncing branches matching '${1}*'\n\n"
+
+save-branch
+
+local_branches=($(git for-each-ref --format='%(refname:short)' refs/heads/${1}* | xargs))
+
+for local_branch in "${local_branches[@]}"
+do
+	printf "Updating ${local_branch}\n"
+
+	git push origin ${local_branch} -f
+
+	printf "\n"
+done
+
+restore-branch
+
+# remote_branches=($(git ls-remote origin --heads refs/heads/${1}* | sed -r 's|^[0-9a-f]+\s*refs/heads/(.*)$|\1|g' | xargs))
+
+# for remote_branch in "${remote_branches[@]}"
+# do
+# 	if ! contains "${remote_branch}" "${local_branches[@]}"
+# 	then
+# 		git push origin --delete ${remote_branch}
+
+# 		printf "\n"
+# 	fi
+# done

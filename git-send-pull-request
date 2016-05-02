@@ -1,0 +1,32 @@
+#!/bin/bash
+
+if [ "${#}" -lt "7" ]
+then
+	echo "Usage: git-send-pull-request <command> -u <username> -b <merge branch> <comment> <submit branch>"
+	exit 1
+fi
+
+if ! git rev-parse --abbrev-ref ${5}
+then
+	printf "${5} is not a valid branch\n"
+	exit 1
+fi
+
+if ! git rev-parse --abbrev-ref ${7}
+then
+	printf "${7} is not a valid branch\n"
+	exit 1
+fi
+
+gitpr=/opt/dev/projects/github/git-tools/git-pull-request/git-pull-request.sh
+
+if ! [[ -x "${gitpr}" ]]
+then
+	printf "Unable to find pull request executable at ${gitpr}\n"
+	exit 1
+fi
+
+git-update-upstream-branch ${5}
+git rebase ${5} ${7}
+git push origin ${7} -f
+${gitpr} ${1} ${2} ${3} ${4} ${5} ${6} ${7}

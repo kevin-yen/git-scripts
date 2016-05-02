@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "${#}" -lt "4" ]
+then
+	printf "Usage: git-backport <source base branch> <source branch> <backport base branch> <backport branch>\n"
+	exit 1
+fi
+
+printf "\nCreating ${4}\n"
+
+if git rev-parse ${4} &> /dev/null
+then
+	printf "\n${4} already exist\n"
+	exit 1
+fi
+
+git checkout -b ${4} ${3}
+
+printf "\nCherry-picking ${1}..${2} onto ${4}\n"
+
+git cherry-pick --abort &> /dev/null || true
+git cherry-pick ${1}..${2}

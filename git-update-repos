@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Reset to a partiuclar directory and git branch if applicable
+reset() {
+	if [ -n "${original_dir}" ]
+	then
+		cd ${original_dir}
+	fi
+
+	restore-branch
+}
+
+# Run command but exit if the command failed
+execute() {
+	eval ${1}
+
+	if [ "$?" -ne "0" ]
+	then
+		printf "'${1}' failed\n"
+		printf "Return code: ${?}\n"
+		
+		reset
+
+		exit 1
+	fi	
+}
+
+clean() {
+	if [ "$1" = "--force" ]
+	then
+		execute 'git reset HEAD .'
+		execute 'git checkout -- .'
+		execute 'git clean -d --force'
+	else
+		changes=$(git status --short)
+		if [ -n "$changes" ]
+		then
+			printf "Uncommited changes exist in ${repository}/${branch}\n"
+
+			reset
+
+			exit 1
+		fi	
+	fi
+}
+
+# Setup parameters
+github_projects_dir=/opt/dev/projects/github
+
+repositories=(\
+	liferay-portal\
+	liferay-portal-ee\
+	liferay-plugins\
+	liferay-plugins-ee\
+	liferay-jenkins-ee\
+	)
+
+declare -A branches
+
+branches["liferay-portal"]="master 7.0.x"
+branches["liferay-portal-ee"]="master ee-7.0.x ee-6.2.x ee-6.2.10 ee-6.1.x ee-6.1.30"
+branches["liferay-plugins"]="master"
+branches["liferay-plugins-ee"]="master ee-6.2.x ee-6.2.10 ee-6.1.x"
+branches["liferay-jenkins-ee"]="master"
+
+# Get the original working directory and git branch
+original_dir=$(pwd)
+
+save-branch
+
+# Update branches
+for repository in ${repositories[@]}
+do
+	read -r -a update_branches <<< "${branches[${repository}]}"
+	
+	execute 'cd ${github_projects_dir}/${repository}'
+
+	for branch in "${update_branches[@]}"
+	do
+		printf "\n"
+		printf "    ###\n"
+		printf "    ### Updating ${repository}/${branch}\n"
+		printf "    ###\n"
+		printf "\n"
+
+		git rebase --abort
+
+		clean
+
+		execute 'git checkout ${branch}'
+
+		execute 'git clean -d --force'
+
+		clean
+
+		execute 'git pull upstream ${branch}'
+		execute	'git push origin ${branch}'
+	done
+done
+
+reset

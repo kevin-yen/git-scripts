@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ ${#} < 1 ]]
+then
+	echo "Usage: git-update-upstream-branch <branch>"
+	exit 1
+fi
+
+git checkout "${1}"
+git pull upstream "${1}"
+git push origin "${1}"

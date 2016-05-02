@@ -1,0 +1,19 @@
+#!/bin/bash
+
+. script-functions
+
+save-branch
+
+test_branches=($(git for-each-ref --format='%(refname:short)' refs/heads/*-test | xargs))
+
+for test_branch in "${test_branches[@]}"
+do
+	base_branch=${test_branch/(.*)-test/\1}
+
+	if ! git rebase ${base_branch} ${test_branch}
+	then
+		git rebase --abort
+	fi
+done
+
+restore-branch

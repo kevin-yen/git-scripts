@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ "${#}" -lt "2" ]
+then
+	printf "Usage: git-remove-merged-branches <branch match string> <base branch>\n"
+	exit 1
+fi
+
+. script-functions
+
+save-branch
+
+base_branch="master"
+if [ -n "${2}" ]
+then
+	if git rev-parse --abbrev-ref ${2}
+	then
+		base_branch="${2}"
+	else
+		printf "${2} is not a valid branch\n"
+
+		exit 1
+	fi
+fi
+
+git push origin ${base_branch}
+
+refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${1}*)
+
+for ref in ${refs}
+do
+	printf "\nAttempting to remove ${ref}\n"
+
+	if git rebase ${base_branch} ${ref}
+	then
+		git checkout ${base_branch}
+		git branch -d ${ref} || true
+	else
+		printf "Unable to rebase ${ref} ... aborting rebase\n"
+		git rebase --abort
+	fi
+done
+
+restore-branch

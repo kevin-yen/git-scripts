@@ -1,0 +1,53 @@
+#!/bin/bash
+
+if [ "${#}" -lt "1" ]
+then
+	printf "Please specify the ticket number to backport\n"
+	exit 1
+fi
+
+source_base_branch="master"
+source_branch="${source_base_branch}-qa-${1}"
+
+backport_base_branches=("ee-6.2.x" "ee-6.2.10" "ee-6.1.x" "ee-6.1.30")
+backport_branches=("ee-6.2.x-qa-${1}" "ee-6.2.10-qa-${1}" "ee-6.1.x-qa-${1}" "ee-6.1.30-qa-${1}")
+
+printf "Attempting to backport ${source_branch} onto ${backport_base_branches[*]}\n"
+
+if ! git rev-parse ${source_branch} &> /dev/null
+then
+	printf "${source_branch} does not exist\n"
+	exit 1
+fi
+
+printf "\nUpdating ${source_base_branch} branch\n"
+
+git-update-upstream-branch ${source_base_branch}
+
+printf "\nRebasing ${source_branch} onto ${source_base_branch}\n"
+
+git rebase ${source_base_branch} ${source_branch}
+
+for i in "${!backport_branches[@]}"
+do
+	printf "\nUpdating ${backport_base_branches[${i}]} branch\n"
+
+	git-update-upstream-branch ${backport_base_branches[${i}]}
+
+	printf "\nCreating ${backport_branches[${i}]}\n"
+
+	if git rev-parse ${backport_branches[${i}]} &> /dev/null
+	then
+		printf "\n${backport_branches[${i}]} already exist\n"
+		exit 1
+	fi
+
+	git checkout -b ${backport_branches[${i}]} ${backport_base_branches[${i}]}
+	
+	printf "\nCherry-picking ${source_base_branch}..${source_branch} onto ${backport_branches[${i}]}\n"
+
+	git cherry-pick --abort &> /dev/null || true
+	git cherry-pick ${source_base_branch}..${source_branch}
+
+	git push origin ${backport_branches[${i}]} -f
+done
