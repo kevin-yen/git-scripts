@@ -1,11 +1,6 @@
 #!/bin/bash
 
-# Reset to a partiuclar directory and git branch if applicable
-reset() {
-	restore-directory
-
-	restore-branch
-}
+. script-functions
 
 # Run command but exit if the command failed
 execute() {
@@ -95,4 +90,6 @@ do
 	done
 done
 
-reset
+restore-directory
+
+restore-branch
