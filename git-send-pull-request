@@ -18,10 +18,6 @@ then
 	exit 1
 fi
 
-. script-functions
-
-save-branch
-
 gitpr=/opt/dev/projects/github/git-tools/git-pull-request/git-pull-request.sh
 
 if ! [[ -x "${gitpr}" ]]
@@ -29,6 +25,10 @@ then
 	printf "Unable to find pull request executable at ${gitpr}\n"
 	exit 1
 fi
+
+. script-functions
+
+save-branch
 
 git-update-upstream-branch ${5}
 git rebase ${5} ${7}
