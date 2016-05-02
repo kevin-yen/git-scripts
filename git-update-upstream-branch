@@ -6,6 +6,12 @@ then
 	exit 1
 fi
 
+. script-functions
+
+save-branch
+
 git checkout "${1}"
 git pull upstream "${1}"
 git push origin "${1}"
+
+restore-branch

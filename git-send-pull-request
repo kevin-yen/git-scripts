@@ -18,6 +18,10 @@ then
 	exit 1
 fi
 
+. script-functions
+
+save-branch
+
 gitpr=/opt/dev/projects/github/git-tools/git-pull-request/git-pull-request.sh
 
 if ! [[ -x "${gitpr}" ]]
@@ -29,4 +33,7 @@ fi
 git-update-upstream-branch ${5}
 git rebase ${5} ${7}
 git push origin ${7} -f
+
 ${gitpr} ${1} ${2} ${3} ${4} ${5} ${6} ${7}
+
+restore-branch
