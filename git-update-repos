@@ -2,10 +2,7 @@
 
 # Reset to a partiuclar directory and git branch if applicable
 reset() {
-	if [ -n "${original_dir}" ]
-	then
-		cd ${original_dir}
-	fi
+	restore-directory
 
 	restore-branch
 }
@@ -64,7 +61,7 @@ branches["liferay-plugins-ee"]="master ee-6.2.x ee-6.2.10 ee-6.1.x"
 branches["liferay-jenkins-ee"]="master"
 
 # Get the original working directory and git branch
-original_dir=$(pwd)
+save-directory
 
 save-branch
 
