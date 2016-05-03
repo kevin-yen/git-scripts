@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ "${#}" -lt "2" ]
+then
+	printf "Usage: github-get <api path> <token>\n"
+	exit 1
+fi
+
+curl --verbose \
+--request GET \
+--header "Authorization: token ${2}" \
+--data-binary "" \
+https://api.github.com/${1}
