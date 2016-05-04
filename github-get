@@ -11,4 +11,4 @@ then
 	token_parameter="--header \"Authorization: token ${2}\""
 fi
 
-curl --verbose --request GET ${token_parameter} --data-binary "" https://api.github.com/${1}
+eval curl --verbose --request GET ${token_parameter} https://api.github.com/${1}
