@@ -1,0 +1,25 @@
+#!/bin/bash
+
+function get-latest {
+	find "${1}" -name ${2} | sort -V | tail -1
+}
+
+JENKINS_DIR=/opt/dev/projects/github/liferay-jenkins-ee
+LIB_DIR=${JENKINS_DIR}/lib
+
+PORTAL_DIR=/opt/dev/projects/github/liferay-portal
+DIST_DIR=${PORTAL_DIR}/tools/sdk/dist
+
+SRC_DIR=${DIST_DIR}
+
+if [ "${#}" -lt "1" ]
+then
+	match_string="com.liferay.jenkins.results.parser"
+else
+	match_string="${1}"
+fi
+
+source_path=$(get-latest ${SRC_DIR} *${match_string}*.jar)
+dest_path=${LIB_DIR}/$(echo $(basename ${source_path}) | sed -e 's/-[.0-9]\+.jar/.jar/')
+
+cp ${source_path} ${dest_path} --verbose
