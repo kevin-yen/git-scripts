@@ -1,0 +1,32 @@
+#!/bin/bash
+
+function contains {
+	local e
+	for e in "${@:2}"
+	do
+		[[ "${e}" == "${1}" ]] && return 0
+	done
+	return 1
+}
+
+function save-branch {
+	if ! SCRIPT_FUNCTIONS_SAVED_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	then
+		SCRIPT_FUNCTIONS_SAVED_BRANCH=""
+	fi
+}
+
+function restore-branch {
+	if [ -n "${SCRIPT_FUNCTIONS_SAVED_BRANCH}" ]
+	then
+		git checkout ${SCRIPT_FUNCTIONS_SAVED_BRANCH}
+	fi
+}
+
+function save-directory {
+	SCRIPT_FUNCTIONS_SAVED_DIRECTORY=$(pwd)
+}
+
+function restore-directory {
+	cd "${SCRIPT_FUNCTIONS_SAVED_DIRECTORY}"
+}
