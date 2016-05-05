@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "${#}" -lt "1" ]
+then
+	printf "Usage: map-get <path> <json>\n"
+
+	exit 1
+fi
+
+curl --request POST --header "Content-type: application/json" --data-binary "${2}" http://cloud-10-0-0-31/osb-jenkins-web/map/${1} --verbose
+
+printf "\n"
