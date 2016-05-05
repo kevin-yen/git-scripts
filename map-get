@@ -7,6 +7,6 @@ then
 	exit 1
 fi
 
-curl --request GET http://cloud-10-0-0-31/osb-jenkins-web/map/${1} --verbose
+curl http://cloud-10-0-0-31/osb-jenkins-web/map/${1} --verbose
 
 printf "\n"
