@@ -13,7 +13,7 @@ save-branch
 base_branch="master"
 if [ -n "${2}" ]
 then
-	if git rev-parse --abbrev-ref ${2}
+	if git rev-parse --abbrev-ref ${2} &> /dev/null
 	then
 		base_branch="${2}"
 	else

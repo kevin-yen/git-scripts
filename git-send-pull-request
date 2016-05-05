@@ -6,13 +6,13 @@ then
 	exit 1
 fi
 
-if ! git rev-parse --abbrev-ref ${5}
+if ! git rev-parse --abbrev-ref ${5} &> /dev/null
 then
 	printf "${5} is not a valid branch\n"
 	exit 1
 fi
 
-if ! git rev-parse --abbrev-ref ${7}
+if ! git rev-parse --abbrev-ref ${7} &> /dev/null
 then
 	printf "${7} is not a valid branch\n"
 	exit 1
