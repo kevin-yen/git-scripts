@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if (( ${#} < 1 ))
+then
+	echo "Usage: git-update-branch <branch> [<base branch>]"
+	exit 1
+elif (( ${#} == 1 ))
+then
+	base_branch="master"
+else
+	base_branch="${2}"
+fi
+
+. script-functions
+
+save-branch
+
+git checkout "${base_branch}"
+git pull upstream "${base_branch}"
+git push origin "${base_branch}"
+git rebase "${base_branch}" "${1}"
+git push origin "${1}" -f
+
+restore-branch
