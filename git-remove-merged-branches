@@ -33,6 +33,7 @@ do
 
 	if git rebase ${base_branch} ${ref}
 	then
+		git push origin ${ref} -f
 		git checkout ${base_branch}
 		git branch -d ${ref} || true
 	else
