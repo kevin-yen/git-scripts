@@ -2,7 +2,7 @@
 
 if [ "${#}" -lt "2" ]
 then
-	printf "Usage: git-remove-merged-branches <branch match string> <base branch>\n"
+	printf "Usage: git-remove-merged-branches <base branch> <branch match string>\n"
 	exit 1
 fi
 
@@ -11,13 +11,13 @@ fi
 save-branch
 
 base_branch="master"
-if [ -n "${2}" ]
+if [ -n "${1}" ]
 then
-	if git rev-parse --abbrev-ref ${2} &> /dev/null
+	if git rev-parse --abbrev-ref ${1} &> /dev/null
 	then
-		base_branch="${2}"
+		base_branch="${1}"
 	else
-		printf "${2} is not a valid branch\n"
+		printf "${1} is not a valid branch\n"
 
 		exit 1
 	fi
@@ -25,7 +25,7 @@ fi
 
 git push origin ${base_branch}
 
-refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${1}*)
+refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${2}*)
 
 for ref in ${refs}
 do
