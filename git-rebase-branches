@@ -1,0 +1,57 @@
+#!/bin/bash
+
+if [ "${#}" -lt "2" ]
+then
+	printf "Usage: git-rebase-branches <base branch> <branch match string>\n"
+	exit 1
+fi
+
+. script-functions
+
+save-branch
+
+base_branch="master"
+if [ -n "${1}" ]
+then
+	if git rev-parse --abbrev-ref ${1} &> /dev/null
+	then
+		base_branch="${1}"
+	else
+		printf "${1} is not a valid branch\n"
+
+		exit 1
+	fi
+fi
+
+git push origin ${base_branch}
+
+refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${2}*)
+
+printf "This will rebase the following branches on to ${base_branch}\n"
+
+for ref in ${refs}
+do
+	printf "  ${ref}\n"
+done
+
+read -p "Are you sure? " -n 1 -r response
+
+printf "\n"
+
+if [[ ! ${response} =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+
+for ref in ${refs}
+do
+	printf "\nAttempting to rebase ${ref}\n"
+
+	if ! git rebase ${base_branch} ${ref}
+	then
+		printf "Unable to rebase ${ref} ... aborting rebase\n"
+		git rebase --abort
+	fi
+done
+
+restore-branch
