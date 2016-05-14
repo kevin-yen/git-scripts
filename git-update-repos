@@ -10,11 +10,11 @@ execute() {
 	then
 		printf "'${1}' failed\n"
 		printf "Return code: ${?}\n"
-		
+
 		reset
 
 		exit 1
-	fi	
+	fi
 }
 
 clean() {
@@ -32,7 +32,7 @@ clean() {
 			reset
 
 			exit 1
-		fi	
+		fi
 	fi
 }
 
@@ -64,7 +64,7 @@ save-branch
 for repository in ${repositories[@]}
 do
 	read -r -a update_branches <<< "${branches[${repository}]}"
-	
+
 	execute 'cd ${github_projects_dir}/${repository}'
 
 	for branch in "${update_branches[@]}"
