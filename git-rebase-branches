@@ -6,6 +6,7 @@ then
 	exit 1
 fi
 
+. color-definitions
 . script-functions
 
 save-branch
@@ -27,7 +28,7 @@ git push origin ${base_branch}
 
 refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${2}*)
 
-printf "This will rebase the following branches on to ${base_branch}\n"
+printf "This will rebase the following branches on to ${green}${base_branch}${nc}\n"
 
 for ref in ${refs}
 do

@@ -6,6 +6,8 @@ then
 	exit 1
 fi
 
+. color-definitions
+
 printf "\nCreating ${4}\n"
 
 if git rev-parse ${4} &> /dev/null
@@ -16,7 +18,7 @@ fi
 
 git checkout -b ${4} ${3}
 
-printf "\nCherry-picking ${1}..${2} onto ${4}\n"
+printf "\nCherry-picking ${1}..${2} onto ${green}${4}${nc}\n"
 
 git cherry-pick --abort &> /dev/null || true
 git cherry-pick ${1}..${2}
