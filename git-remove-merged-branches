@@ -47,7 +47,10 @@ do
 	then
 		git push origin ${ref} -f
 		git checkout ${base_branch}
-		git branch -d ${ref} || true
+		if git branch -d ${ref}
+		then
+			git push origin ${ref} --delete
+		fi
 	else
 		printf "Unable to rebase ${ref} ... aborting rebase\n"
 		git rebase --abort
