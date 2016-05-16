@@ -11,7 +11,8 @@ execute() {
 		printf "'${1}' failed\n"
 		printf "Return code: ${?}\n"
 
-		reset
+		restore-directory
+		restore-branch
 
 		exit 1
 	fi
@@ -29,7 +30,8 @@ clean() {
 		then
 			printf "Uncommited changes exist in ${repository}/${branch}\n"
 
-			reset
+			restore-directory
+			restore-branch
 
 			exit 1
 		fi
