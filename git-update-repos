@@ -1,5 +1,6 @@
 #!/bin/bash
 
+. color-definitions
 . script-functions
 
 # Run command but exit if the command failed
@@ -71,7 +72,7 @@ do
 
 	for branch in "${update_branches[@]}"
 	do
-		printf "Updating ${green}${repository}/${branch}${nc}\n"
+		printf "\nUpdating ${github_projects_dir}/${repository} ${green}refs/heads/${branch}${nc}\n"
 
 		git rebase --abort
 
