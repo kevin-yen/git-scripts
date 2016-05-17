@@ -74,7 +74,7 @@ do
 	do
 		printf "\nUpdating ${github_projects_dir}/${repository} ${green}refs/heads/${branch}${nc}\n"
 
-		git rebase --abort
+		git rebase --abort &> /dev/null
 
 		clean
 

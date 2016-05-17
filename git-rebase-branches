@@ -51,7 +51,7 @@ do
 	if ! git rebase ${base_branch} ${ref}
 	then
 		printf "Unable to rebase ${ref} ... aborting rebase\n"
-		git rebase --abort
+		git rebase --abort &> /dev/null
 	fi
 done
 
