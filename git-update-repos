@@ -71,11 +71,7 @@ do
 
 	for branch in "${update_branches[@]}"
 	do
-		printf "\n"
-		printf "    ###\n"
-		printf "    ### Updating ${repository}/${branch}\n"
-		printf "    ###\n"
-		printf "\n"
+		printf "Updating ${green}${repository}/${branch}${nc}\n"
 
 		git rebase --abort
 
