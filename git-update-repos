@@ -53,9 +53,9 @@ repositories=(\
 declare -A branches
 
 branches["liferay-portal"]="master 7.0.x"
-branches["liferay-portal-ee"]="master ee-7.0.x ee-6.2.x ee-6.2.10 ee-6.1.x ee-6.1.30"
+branches["liferay-portal-ee"]="ee-6.2.x ee-6.2.10 ee-6.1.x ee-6.1.30 master ee-7.0.x"
 branches["liferay-plugins"]="master"
-branches["liferay-plugins-ee"]="master ee-6.2.x ee-6.2.10 ee-6.1.x"
+branches["liferay-plugins-ee"]="ee-6.2.x ee-6.2.10 ee-6.1.x master"
 branches["liferay-jenkins-ee"]="master"
 
 # Get the original working directory and git branch
@@ -87,6 +87,8 @@ do
 		execute 'git pull upstream ${branch}'
 		execute	'git push origin ${branch}'
 	done
+
+	execute 'git checkout ${update_branches[0]}'
 done
 
 restore-directory
