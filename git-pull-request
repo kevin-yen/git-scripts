@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "${#}" -lt "7" ]
+if [ "${#}" -lt "8" ]
 then
-	echo "Usage: git-send-pull-request <command> -u <username> -b <merge branch> <comment> <submit branch>"
+	echo "Usage: git-send-pull-request <command> -u <username> -b <merge branch> <comment> <title> <submit branch>"
 	exit 1
 fi
 
@@ -12,9 +12,9 @@ then
 	exit 1
 fi
 
-if ! git rev-parse --abbrev-ref ${7} &> /dev/null
+if ! git rev-parse --abbrev-ref ${8} &> /dev/null
 then
-	printf "${7} is not a valid branch\n"
+	printf "${8} is not a valid branch\n"
 	exit 1
 fi
 
@@ -31,8 +31,8 @@ fi
 save-branch
 
 git-update-upstream-branch ${5}
-git rebase ${5} ${7}
-git push origin ${7} -f
+git rebase ${5} ${8}
+git push origin ${8} -f
 
 ${gitpr} ${1} ${2} ${3} ${4} ${5} ${6} ${7}
 
