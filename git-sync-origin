@@ -1,14 +1,21 @@
 #!/bin/bash
 
+. color-definitions
+. script-functions
+
 printf "Syncing branches matching '${1}*'\n\n"
+
+save-branch
 
 local_branches=($(git for-each-ref --format='%(refname:short)' refs/heads/${1}* | xargs))
 
 for local_branch in "${local_branches[@]}"
 do
-	printf "Updating ${local_branch}\n"
+	printf "Updating ${green}${local_branch}${nc}\n"
 
 	git push origin ${local_branch} -f
 
 	printf "\n"
 done
+
+restore-branch
