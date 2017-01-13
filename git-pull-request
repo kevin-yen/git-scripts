@@ -18,7 +18,7 @@ then
 	exit 1
 fi
 
-gitpr=/opt/dev/projects/github/git-tools/git-pull-request/git-pull-request.sh
+gitpr=~/Documents/projects/git-tools/git-pull-request/git-pull-request.sh
 
 if ! [[ -x "${gitpr}" ]]
 then

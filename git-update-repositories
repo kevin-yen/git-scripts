@@ -3,43 +3,6 @@
 . color-definitions
 . script-functions
 
-# Run command but exit if the command failed
-execute() {
-	eval ${1}
-
-	if [ "$?" -ne "0" ]
-	then
-		printf "'${1}' failed\n"
-		printf "Return code: ${?}\n"
-
-		restore-directory
-		restore-branch
-
-		exit 1
-	fi
-}
-
-clean() {
-	if [ "$1" = "--force" ]
-	then
-		execute 'git reset HEAD .'
-		execute 'git checkout -- .'
-		execute 'git clean -d --force'
-	else
-		changes=$(git status --short)
-		if [ -n "$changes" ]
-		then
-			printf "Uncommited changes exist in ${repository}/${branch}\n"
-
-			restore-directory
-			restore-branch
-
-			exit 1
-		fi
-	fi
-}
-
-# Setup parameters
 github_projects_dir=/opt/dev/projects/github
 
 repositories=(\
@@ -59,21 +22,19 @@ declare -A branches
 
 branches["liferay-portal"]="master"
 branches["liferay-portal-ee"]="master"
-branches["liferay-portal-ee-6.1.x"]="ee-6.1.x"
-branches["liferay-portal-ee-6.1.30"]="ee-6.1.30"
-branches["liferay-portal-ee-6.2.x"]="ee-6.2.x"
-branches["liferay-portal-ee-6.2.10"]="ee-6.2.10"
-branches["liferay-portal-ee-7.0.x"]="ee-7.0.x"
+branches["liferay-portal-ee-6.1.x"]="master"
+branches["liferay-portal-ee-6.1.30"]="master"
+branches["liferay-portal-ee-6.2.x"]="master"
+branches["liferay-portal-ee-6.2.10"]="master"
+branches["liferay-portal-ee-7.0.x"]="master"
 branches["liferay-plugins"]="master"
 branches["liferay-plugins-ee"]="ee-6.2.x ee-6.2.10 ee-6.1.x master"
 branches["liferay-jenkins-ee"]="master"
 
-# Get the original working directory and git branch
 save-directory
 
 save-branch
 
-# Update branches
 for repository in ${repositories[@]}
 do
 	read -r -a update_branches <<< "${branches[${repository}]}"
@@ -84,8 +45,21 @@ do
 	do
 		printf "\nUpdating ${github_projects_dir}/${repository} ${green}refs/heads/${branch}${nc}\n"
 
-		git update-upstream-branch ${branch}
+		git rebase --abort &> /dev/null
+
+		clean
+
+		execute 'git checkout ${branch}'
+
+		execute 'git clean -d --force'
+
+		clean
+
+		execute 'git pull upstream ${branch}'
+		execute	'git push origin ${branch}'
 	done
+
+	execute 'git checkout ${update_branches[0]}'
 done
 
 restore-directory
