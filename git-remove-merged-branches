@@ -47,11 +47,12 @@ do
 
 	if git rebase ${base_branch} ${ref}
 	then
-		git push origin ${ref} -f
 		git checkout ${base_branch}
-		if git branch -d ${ref}
+
+		if [ "$(git rev-parse ${base_branch})" = "(git rev-parse ${ref})" ]
 		then
 			git push origin ${ref} --delete
+			git branch -D ${ref}
 		fi
 	else
 		printf "Unable to rebase ${ref} ... aborting rebase\n"
