@@ -22,11 +22,3 @@ function restore-branch {
 		git checkout ${SCRIPT_FUNCTIONS_SAVED_BRANCH}
 	fi
 }
-
-function save-directory {
-	SCRIPT_FUNCTIONS_SAVED_DIRECTORY=$(pwd)
-}
-
-function restore-directory {
-	cd "${SCRIPT_FUNCTIONS_SAVED_DIRECTORY}"
-}

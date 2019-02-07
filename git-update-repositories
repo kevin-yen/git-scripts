@@ -31,8 +31,6 @@ branches["liferay-plugins"]="master"
 branches["liferay-plugins-ee"]="ee-6.2.x ee-6.2.10 ee-6.1.x master"
 branches["liferay-jenkins-ee"]="master"
 
-save-directory
-
 save-branch
 
 for repository in ${repositories[@]}
@@ -61,7 +59,5 @@ do
 
 	execute 'git checkout ${update_branches[0]}'
 done
-
-restore-directory
 
 restore-branch

@@ -69,8 +69,6 @@ branches["liferay-plugins-ee"]="ee-6.2.x ee-6.2.10 ee-6.1.x master"
 branches["liferay-jenkins-ee"]="master"
 
 # Get the original working directory and git branch
-save-directory
-
 save-branch
 
 # Update branches
@@ -87,7 +85,5 @@ do
 		git update-upstream-branch ${branch}
 	done
 done
-
-restore-directory
 
 restore-branch
