@@ -2,3 +2,4 @@
 
 mkdir -p ~/bin
 cp --verbose ./* ~/bin
+chmod u+x ~/bin/*
