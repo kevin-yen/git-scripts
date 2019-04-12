@@ -1,5 +1,5 @@
 #!/bin/bash
 
-mkdir -p ~/bin
-cp --verbose ./* ~/bin
-chmod u+x ~/bin/*
+chmod u+x ./bin/*
+mkdir -p ~/.local/bin
+cp --verbose ./bin/* ~/.local/bin
