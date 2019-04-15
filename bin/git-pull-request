@@ -2,7 +2,7 @@
 
 if [ "${#}" -lt "8" ]
 then
-	echo "Usage: git-send-pull-request <command> -u <username> -b <merge branch> <comment> <title> <submit branch>"
+	echo "Usage: git pull-request <command> -u <username> -b <merge branch> <comment> <title> <submit branch>"
 	exit 1
 fi
 
@@ -18,7 +18,7 @@ then
 	exit 1
 fi
 
-gitpr=~/projects/git-tools/git-pull-request/git-pull-request.sh
+gitpr=~/Projects/git-tools/git-pull-request/git-pull-request.sh
 
 if ! [[ -x "${gitpr}" ]]
 then
