@@ -25,21 +25,33 @@ else
 	done
 fi
 
-printf "The following remote branches will be ${yellow}deleted${nc}!\n"
-
-delete_branches=""
+delete_branches=()
 for remote_branch in "${remote_branches[@]}"
 do
 	if ! contains "${remote_branch}" "${local_branches[@]}"
 	then
-		printf "  ${remote_branch}\n"
-		delete_branches="${remote_branch} ${delete_branches}"
+		delete_branches=(${remote_branch} "${delete_branches[@]}")
 	fi
+done
+
+printf "Running this command is potentially ${yellow}dangerous${nc},\n"
+printf "and any mistakes can lead to ${yellow}loss work${nc}.\n"
+
+if [[ "${#delete_branches[@]}" -eq 0 ]]
+then
+	printf "All matching remote branches have corresponding local branches.\n"
+	exit 0
+fi
+printf "These remote branches with no corresponding local branch will be ${yellow}deleted${nc}!\n"
+
+for delete_branch in "${delete_branches[@]}"
+do
+	printf "  origin/${delete_branch}\n"
 done
 
 ask-for-confirmation
 
-for delete_branch in ${delete_branches}
+for delete_branch in "${delete_branches[@]}"
 do
 	git push origin --delete ${delete_branch}
 done
