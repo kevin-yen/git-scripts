@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. color-definitions
+. colors
 . script-functions
 
 save-branch

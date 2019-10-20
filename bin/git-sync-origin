@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. color-definitions
+. colors
 . script-functions
 
 printf "Syncing branches matching '${1}*'\n\n"
