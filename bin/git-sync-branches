@@ -1,0 +1,26 @@
+#!/bin/bash
+
+. color-definitions
+. script-functions
+
+save-branch
+
+branches=""
+if [[ "$#" -eq 0 ]]
+then
+	branches=$(git for-each-ref --format='%(refname:short)' refs/heads/*)
+else
+	for arg in "$@"
+	do
+		branches="$(git for-each-ref --format='%(refname:short)' refs/heads/${arg}*) ${branches}"
+	done
+fi
+
+for branch in ${branches}
+do
+	printf "Updating ${green}${branch}${nc}\n"
+	git sync ${branch}
+	printf "\n"
+done
+
+restore-branch
