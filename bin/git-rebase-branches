@@ -12,16 +12,12 @@ fi
 save-branch
 
 base_branch="master"
-if [ -n "${1}" ]
+if is-valid-branch "${1}"
 then
-	if git rev-parse --abbrev-ref ${1} &> /dev/null
-	then
-		base_branch="${1}"
-	else
-		printf "${1} is not a valid branch\n"
-
-		exit 1
-	fi
+	base_branch="${1}"
+else
+	printf "${1} is not a valid branch\n"
+	exit 1
 fi
 
 git checkout ${base_branch}
