@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$#" -lt "1" ]
+then
+	echo "Usage: git-sync <branch>"
+	exit 1
+fi
+
+behind=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $1}')
+ahead=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $2}')
+
+if [[ ("${behind}" -gt 0) && ("${ahead}" -eq 0) ]]
+then
+	git pull origin ${base_branch}
+elif [[ ("${ahead}" -gt 0) && ("${behind}" -eq 0) ]]
+then
+	git push origin ${base_branch}
+elif [[ ("${behind}" -gt 0) && ("${ahead}" -gt 0) ]]
+then
+	echo "${red}Unable to sync '${1}' and 'origin/${1}'${nc}"
+	exit 1
+fi
