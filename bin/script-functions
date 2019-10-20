@@ -12,7 +12,7 @@ function contains {
 function is-valid-branch {
 	if [ "$#" -ne "1" ]
 	then
-		echo "Invalid argument count (1) when calling is-valid-branch"
+		echo "Function is-valid-branch argument count mismatch: Require 1 but received $#"
 		exit 1
 	fi
 
