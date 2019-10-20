@@ -34,22 +34,8 @@ do
 done
 
 ask-for-confirmation
-
-git checkout ${base_branch}
-
-behind=$(git rev-list --left-right --count origin/${base_branch}...${base_branch} | awk '{print $1}')
-ahead=$(git rev-list --left-right --count origin/${base_branch}...${base_branch} | awk '{print $2}')
-
-if [[ ("${behind}" -gt 0) && ("${ahead}" -eq 0) ]]
+if ! git sync ${base_branch}
 then
-	git pull origin ${base_branch}
-elif [[ ("${ahead}" -gt 0) && ("${behind}" -eq 0) ]]
-then
-	git push origin ${base_branch}
-elif [[ ("${behind}" -gt 0) && ("${ahead}" -gt 0) ]]
-then
-	printf "Please merge '${base_branch}' and 'origin/${base_branch}'\n"
-	printf "before running the command again.\n"
 	exit 1
 fi
 
