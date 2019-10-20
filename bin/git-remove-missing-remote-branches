@@ -1,0 +1,45 @@
+#!/bin/bash
+
+. colors
+. script-functions
+
+local_branches=()
+if [[ "$#" -eq 0 ]]
+then
+	local_branches=($(git for-each-ref --format='%(refname:short)' refs/heads/*))
+else
+	for arg in "$@"
+	do
+		local_branches=($(git for-each-ref --format='%(refname:short)' refs/heads/${arg}*) "(${local_branches[@]})")
+	done
+fi
+
+remote_branches=()
+if [[ "$#" -eq 0 ]]
+then
+	remote_branches=($(git ls-remote origin --heads refs/heads/${1}* | sed -r 's|^[0-9a-f]+\s*refs/heads/(.*)$|\1|g' | xargs))
+else
+	for arg in "$@"
+	do
+		remote_branches=($(git ls-remote origin --heads refs/heads/${1}* | sed -r 's|^[0-9a-f]+\s*refs/heads/(.*)$|\1|g' | xargs) "${remote_branches[@]}")
+	done
+fi
+
+printf "The following remote branches will be ${yellow}deleted${nc}!\n"
+
+delete_branches=""
+for remote_branch in "${remote_branches[@]}"
+do
+	if ! contains "${remote_branch}" "${local_branches[@]}"
+	then
+		printf "  ${remote_branch}\n"
+		delete_branches="${remote_branch} ${delete_branches}"
+	fi
+done
+
+ask-for-confirmation
+
+for delete_branch in ${delete_branches}
+do
+	git push origin --delete ${delete_branch}
+done
