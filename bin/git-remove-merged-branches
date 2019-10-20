@@ -2,7 +2,7 @@
 
 if [ "${#}" -lt "2" ]
 then
-	printf "Usage: git-remove-merged-branches <base branch> <branch match string>\n"
+	printf "Usage: git-remove-merged-branches <base branch> <branch match string...>\n"
 	exit 1
 fi
 
@@ -19,16 +19,16 @@ then
 		base_branch="${1}"
 	else
 		printf "${1} is not a valid branch\n"
-
 		exit 1
 	fi
 fi
 
-git checkout ${base_branch}
-
-git push origin ${base_branch} --quiet
-
-refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${2}*)
+refs=""
+shift
+for arg in "$@"
+do
+	refs="$(git for-each-ref --format='%(refname:short)' refs/heads/${arg}*) ${refs}"
+done
 
 printf "This will rebase the following branches on to ${green}${base_branch}${nc}\n"
 
@@ -37,9 +37,30 @@ do
 	printf "  ${ref}\n"
 done
 
-read -p "Are you sure? " -n 1 -r response
-
+read -p "Are you sure? " -n 1 -r
 printf "\n"
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+	exit 1
+fi
+
+git checkout ${base_branch}
+
+behind=$(git rev-list --left-right --count origin/${base_branch}...${base_branch} | awk '{print $1}')
+ahead=$(git rev-list --left-right --count origin/${base_branch}...${base_branch} | awk '{print $2}')
+
+if [[ ("${behind}" -gt 0) && ("${ahead}" -eq 0) ]]
+then
+	git pull origin ${base_branch}
+elif [[ ("${ahead}" -gt 0) && ("${behind}" -eq 0) ]]
+then
+	git push origin ${base_branch}
+elif [[ ("${behind}" -gt 0) && ("${ahead}" -gt 0) ]]
+then
+	printf "Please merge '${base_branch}' and 'origin/${base_branch}'\n"
+	printf "before running the command again.\n"
+	exit 1
+fi
 
 for ref in ${refs}
 do
