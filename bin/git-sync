@@ -11,6 +11,13 @@ fi
 
 save-branch
 
+git ls-remote --heads --exit-code origin ${1} &> /dev/null
+
+if [[ "$?" -gt 0 ]]
+then
+	git push origin ${1}
+fi
+
 behind=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $1}')
 ahead=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $2}')
 
