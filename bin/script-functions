@@ -34,7 +34,7 @@ function save-branch {
 function restore-branch {
 	if [ -n "${SCRIPT_FUNCTIONS_SAVED_BRANCH}" ]
 	then
-		git checkout ${SCRIPT_FUNCTIONS_SAVED_BRANCH}
+		git checkout ${SCRIPT_FUNCTIONS_SAVED_BRANCH} --quiet
 	fi
 }
 
