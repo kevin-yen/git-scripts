@@ -28,7 +28,6 @@ do
 done
 
 printf "This will rebase the following branches on to ${green}${base_branch}${nc}\n"
-
 for ref in ${refs}
 do
 	printf "  ${ref}\n"

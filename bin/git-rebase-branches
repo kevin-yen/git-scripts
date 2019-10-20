@@ -23,7 +23,6 @@ fi
 refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${2}*)
 
 printf "This will rebase the following branches on to ${green}${base_branch}${nc}\n"
-
 for ref in ${refs}
 do
 	printf "  ${ref}\n"
@@ -32,7 +31,6 @@ done
 ask-for-confirmation
 
 git checkout ${base_branch}
-
 git push origin ${base_branch} --quiet
 
 for ref in ${refs}
