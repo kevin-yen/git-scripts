@@ -18,7 +18,7 @@ then
 	git push origin ${1}
 fi
 
-git fetch origin
+git fetch
 
 behind=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $1}')
 ahead=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $2}')
