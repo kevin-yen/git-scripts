@@ -18,7 +18,7 @@ then
 	git push origin ${1}
 fi
 
-git fetch
+git fetch origin ${1}
 
 behind=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $1}')
 ahead=$(git rev-list --left-right --count origin/${1}...${1} | awk '{print $2}')
@@ -27,10 +27,10 @@ git checkout ${1}
 
 if [[ ("${behind}" -gt 0) && ("${ahead}" -eq 0) ]]
 then
-	git pull origin ${base_branch}
+	git pull origin ${1}
 elif [[ ("${ahead}" -gt 0) && ("${behind}" -eq 0) ]]
 then
-	git push origin ${base_branch}
+	git push origin ${1}
 elif [[ ("${behind}" -gt 0) && ("${ahead}" -gt 0) ]]
 then
 	printf "${red}Unable to sync '${1}' with 'origin/${1}'${nc}\n"
