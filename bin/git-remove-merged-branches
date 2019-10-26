@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "${#}" -lt "2" ]
+if [ "${#}" -lt "1" ]
 then
-	printf "Usage: git-remove-merged-branches <base branch> <branch match string>...\n"
+	printf "Usage: git-remove-merged-branches <base branch> [<branch match string>...]\n"
 	exit 1
 fi
 
@@ -21,11 +21,16 @@ else
 fi
 
 refs=""
-shift
-for arg in "$@"
-do
-	refs="$(git for-each-ref --format='%(refname:short)' refs/heads/${arg}*) ${refs}"
-done
+if [[ "$#" -eq 1 ]]
+then
+	refs=$(git for-each-ref --format='%(refname:short)' refs/heads/${arg}* | sed "s/^${base_branch}$//")
+else
+	shift
+	for arg in "$@"
+	do
+		refs="$(git for-each-ref --format='%(refname:short)' refs/heads/${arg}* | sed "s/^${base_branch}$//") ${refs}"
+	done
+fi
 
 if [[ -z "${refs}" ]]
 then
