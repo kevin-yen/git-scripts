@@ -1,0 +1,3 @@
+# confirm takes an optional prompt; calling it without arguments is intended.
+disable=SC2119
+external-sources=true
