@@ -109,23 +109,6 @@ load test_helper
 	remote_branch_missing merged
 }
 
-@test "remove-missing-remote-branches deletes only matching remote branches without a local branch" {
-	for b in feat-gone feat-kept other-gone; do
-		git push --quiet origin "main:refs/heads/$b"
-	done
-	git branch feat-kept
-
-	run git remove-missing-remote-branches --dry-run feat-
-	[ "$status" -eq 0 ]
-	[[ $output == *origin/feat-gone* ]]
-	[[ $output != *feat-kept* ]]
-	remote_branch_exists feat-gone
-
-	git remove-missing-remote-branches --yes feat- 2>/dev/null
-	remote_branch_missing feat-gone
-	remote_branch_exists feat-kept
-	remote_branch_exists other-gone
-}
 
 @test "remove-merged-branches shows the merged pull request when gh is available" {
 	git branch with-pr

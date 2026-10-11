@@ -34,7 +34,6 @@ man-page lookup instead, so use `-h`, or `git-<name> --help`.)
 |---|---|
 | `git rebase-branches <base> [<prefix>...]` | Push `<base>`, then rebase the matching local branches onto it |
 | `git remove-merged-branches [<base> [<prefix>...]]` | Delete local branches merged into `<base>`; `--squash-aware` also catches squash and rebase merges, and `--push` also deletes them on the remote |
-| `git remove-missing-remote-branches <prefix>...` | Delete remote branches that have no local branch. **Destructive on shared remotes**, so run it with `--dry-run` first |
 
 Common options:
 
