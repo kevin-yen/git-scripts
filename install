@@ -1,5 +1,135 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Usage: ./install [options]
+#
+# Install the git-* commands by symlinking them from this repository into
+# a directory on your PATH, so a `git pull` here updates them. Once
+# installed, each one runs as a git subcommand, e.g. `git rebase-branches`.
+#
+# Options:
+#   -p, --prefix <dir>   Install directory (default: $XDG_BIN_HOME or ~/.local/bin)
+#   -c, --copy           Copy instead of symlinking (also copies the helper
+#                        library to <dir>/../lib/git-scripts)
+#   -f, --force          Replace existing files that this repo did not install
+#   -u, --uninstall      Remove the commands this repo installed
+#   -n, --dry-run        Print what would be done without doing it
+#   -h, --help           Show this help
+set -euo pipefail
 
-chmod u+x ./bin/*
-mkdir -p ~/.local/bin
-cp --verbose ./bin/* ~/.local/bin
+REPO="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")" && pwd)"
+LIB_NAME=lib/git-scripts/common.sh
+
+prefix=${XDG_BIN_HOME:-$HOME/.local/bin}
+mode='link'
+force=0
+uninstall=0
+dry_run=0
+
+die() {
+	printf 'error: %s\n' "$*" >&2
+	exit 1
+}
+
+usage() {
+	awk 'NR == 1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "$0"
+}
+
+run() {
+	printf '%s' "$1"
+	printf ' %q' "${@:2}"
+	printf '\n'
+	[[ $dry_run == 1 ]] || "$@"
+}
+
+while (($#)); do
+	case $1 in
+	-p | --prefix)
+		(($# > 1)) || die "$1 needs a value"
+		prefix=$2
+		shift
+		;;
+	--prefix=*) prefix=${1#*=} ;;
+	-c | --copy) mode=copy ;;
+	-f | --force) force=1 ;;
+	-u | --uninstall) uninstall=1 ;;
+	-n | --dry-run) dry_run=1 ;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*) die "unknown argument: $1 (see --help)" ;;
+	esac
+	shift
+done
+
+# Make the prefix absolute so symlink targets and PATH checks are reliable.
+case $prefix in
+/*) ;;
+*) prefix=$PWD/$prefix ;;
+esac
+lib_dest=$(dirname "$prefix")/$LIB_NAME
+
+# True when $1 was installed from this repo: a symlink into it, or a copy of $2.
+is_ours() {
+	local dest=$1 src=$2
+	if [[ -L $dest ]]; then
+		[[ $(readlink "$dest") == "$src" ]]
+	else
+		[[ -f $dest ]] && cmp -s "$dest" "$src"
+	fi
+}
+
+installed=0
+for src in "$REPO"/bin/git-*; do
+	name=$(basename "$src")
+	dest=$prefix/$name
+
+	if [[ $uninstall == 1 ]]; then
+		if is_ours "$dest" "$src"; then
+			run rm "$dest"
+			installed=$((installed + 1))
+		fi
+		continue
+	fi
+
+	if [[ -e $dest || -L $dest ]] && ! is_ours "$dest" "$src" && [[ $force == 0 ]]; then
+		printf 'skipping %s: it exists and was not installed from %s (use --force to replace it)\n' "$dest" "$REPO" >&2
+		continue
+	fi
+
+	if ((installed == 0)); then
+		[[ -d $prefix ]] || run mkdir -p "$prefix"
+	fi
+	if [[ $mode == link ]]; then
+		run ln -sfn "$src" "$dest"
+	else
+		run rm -f "$dest"
+		run cp "$src" "$dest"
+		run chmod 755 "$dest"
+	fi
+	installed=$((installed + 1))
+done
+
+if [[ $uninstall == 1 ]]; then
+	if is_ours "$lib_dest" "$REPO/$LIB_NAME"; then
+		run rm "$lib_dest"
+		[[ $dry_run == 1 ]] || rmdir "$(dirname "$lib_dest")" 2>/dev/null || true
+	fi
+	printf 'Removed %d commands from %s\n' "$installed" "$prefix"
+	exit 0
+fi
+
+if [[ $mode == copy ]]; then
+	run mkdir -p "$(dirname "$lib_dest")"
+	run cp "$REPO/$LIB_NAME" "$lib_dest"
+fi
+
+printf 'Installed %d commands into %s\n' "$installed" "$prefix"
+
+case ":$PATH:" in
+*":$prefix:"*) ;;
+*)
+	printf '\n%s is not on your PATH. Add this line to your shell rc file (~/.bashrc, ~/.zshrc):\n' "$prefix"
+	# shellcheck disable=SC2016 # $PATH is meant to be written literally
+	printf '  export PATH="%s:$PATH"\n' "$prefix"
+	;;
+esac
