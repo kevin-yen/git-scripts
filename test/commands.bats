@@ -154,3 +154,54 @@ load test_helper
 	[[ $output == *feature* ]]
 	[[ $output != *$'\033'* ]]
 }
+
+@test "setup-tracking-branches tracks only untracked branches with a remote match" {
+	git branch pushed
+	git push --quiet origin pushed
+	git branch local-only
+	git branch other-name
+	git push --quiet origin other-name:different
+	git branch already
+	git push --quiet origin already:elsewhere
+	git branch --quiet --set-upstream-to=origin/elsewhere already
+	git push --quiet origin main:already
+
+	run git setup-tracking-branches
+	[ "$status" -eq 0 ]
+	[ "$(upstream_of pushed)" = origin/pushed ]
+	[ "$(upstream_of already)" = origin/elsewhere ]
+	no_upstream local-only
+	no_upstream other-name
+}
+
+@test "setup-tracking-branches --dry-run changes nothing and honours prefixes" {
+	git branch feature/a
+	git branch other
+	git push --quiet origin feature/a other
+	git branch --quiet --unset-upstream main
+
+	run git setup-tracking-branches --dry-run
+	[ "$status" -eq 0 ]
+	[[ $output == *"--set-upstream-to=origin/feature/a"* ]]
+	no_upstream feature/a
+
+	run git setup-tracking-branches feature/
+	[ "$status" -eq 0 ]
+	[ "$(upstream_of feature/a)" = origin/feature/a ]
+	no_upstream other
+	no_upstream main
+}
+
+@test "setup-tracking-branches --fetch sees branches pushed from elsewhere" {
+	git clone --quiet "$TMP/origin.git" "$TMP/other" 2>/dev/null
+	git -C "$TMP/other" push --quiet origin main:remote-only
+	git branch remote-only
+
+	run git setup-tracking-branches
+	[ "$status" -eq 0 ]
+	no_upstream remote-only
+
+	run git setup-tracking-branches --fetch
+	[ "$status" -eq 0 ]
+	[ "$(upstream_of remote-only)" = origin/remote-only ]
+}
