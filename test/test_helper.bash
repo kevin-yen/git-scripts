@@ -47,3 +47,12 @@ branch_missing() {
 remote_branch_missing() {
 	! remote_branch_exists "$1"
 }
+
+# upstream_of <branch>: print the branch's upstream, e.g. origin/main.
+upstream_of() {
+	git rev-parse --abbrev-ref "$1@{upstream}"
+}
+
+no_upstream() {
+	! git rev-parse --verify --quiet "$1@{upstream}" >/dev/null
+}

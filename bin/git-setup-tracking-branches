@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Usage: git setup-tracking-branches [options] [<prefix>...]
+#
+# Set the upstream of every local branch that has none to the branch with the
+# same name on the remote, when one exists. Only branches whose names start
+# with one of the <prefix>es are considered (all branches when none are given).
+# Remote branches are looked up in the remote-tracking refs, so run
+# `git fetch` first (or pass --fetch) to see branches pushed elsewhere.
+#
+# Options:
+#   -r, --remote <name>   Remote whose branches to track (default: origin)
+#   -f, --fetch           Fetch <remote> first
+#   -n, --dry-run         Print the commands instead of running them
+#   -h, --help            Show this help
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")" && pwd)"
+# shellcheck source=lib/git-scripts/common.sh
+. "$SCRIPT_DIR/../lib/git-scripts/common.sh"
+
+remote=origin
+fetch=0
+args=()
+while (($#)); do
+	case $1 in
+	-r | --remote)
+		(($# > 1)) || die "$1 needs a value"
+		remote=$2
+		shift
+		;;
+	-f | --fetch) fetch=1 ;;
+	-n | --dry-run) DRY_RUN=1 ;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	--)
+		shift
+		args+=("$@")
+		break
+		;;
+	-*) die "unknown option: $1 (see --help)" ;;
+	*) args+=("$1") ;;
+	esac
+	shift
+done
+set -- ${args[@]+"${args[@]}"}
+
+require_repo
+has_remote "$remote" || die "$remote is not a remote"
+
+if [[ $fetch == 1 ]]; then
+	run git fetch --quiet "$remote"
+fi
+
+# Local branches that already have an upstream.
+tracked=()
+while IFS=$'\t' read -r ref upstream; do
+	[[ -n $upstream ]] && tracked+=("$ref")
+done < <(git for-each-ref --format='%(refname:short)%09%(upstream)' refs/heads/)
+
+candidates=()
+while IFS= read -r ref; do
+	contains "$ref" ${tracked[@]+"${tracked[@]}"} && continue
+	git show-ref --verify --quiet "refs/remotes/$remote/$ref" || continue
+	candidates+=("$ref")
+done < <(list_branches "$@")
+
+((${#candidates[@]} > 0)) || {
+	info "No untracked branches with a matching branch on $remote found."
+	exit 0
+}
+
+failed=0
+for ref in "${candidates[@]}"; do
+	info "Tracking ${green}${remote}/${ref}${nc} from ${green}${ref}${nc}"
+	run git branch --quiet --set-upstream-to="$remote/$ref" "$ref" || failed=1
+done
+exit "$failed"

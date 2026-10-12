@@ -34,6 +34,7 @@ man-page lookup instead, so use `-h`, or `git-<name> --help`.)
 |---|---|
 | `git rebase-branches <base> [<prefix>...]` | Push `<base>` (unless `--no-push`), then rebase the matching local branches onto it, including branches checked out in other worktrees |
 | `git remove-merged-branches [<base> [<prefix>...]]` | Delete local branches merged into `<base>`, removing their linked worktrees (a worktree with uncommitted changes, and its branch, is kept); `-s`/`--squash-aware` also catches squash and rebase merges, and `-p`/`--push` also deletes them on the remote |
+| `git setup-tracking-branches [<prefix>...]` | Set the upstream of each local branch that has none to the same-named branch on the remote (`-f`/`--fetch` fetches first) |
 
 A `<prefix>` matches branch names that start with it (`feat` matches
 `feat/x` and `feature`). With no prefixes, every local branch matches.
