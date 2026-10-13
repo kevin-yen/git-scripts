@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 # Usage: git rebase-branches [options] <base-branch> [<prefix>...]
 #
-# Push <base-branch> to the remote, then rebase every local branch whose name
-# starts with one of the <prefix>es (all branches when none are given) onto it.
-# <base-branch> itself is never rebased. A branch that fails to rebase is
-# skipped and the rebase aborted.
+# Rebase every local branch whose name starts with one of the <prefix>es (all
+# branches when none are given) onto <base-branch>. <base-branch> itself is
+# never rebased. A branch that fails to rebase is skipped and the rebase aborted.
+#
+# With --push, each rebased branch that already exists on the remote is
+# force-pushed to it (with --force-with-lease, so commits pushed from elsewhere
+# are not overwritten). Branches that exist only locally, and <base-branch>
+# itself, are never pushed.
 #
 # Options:
-#   -r, --remote <name>   Remote to push <base-branch> to (default: origin)
-#       --no-push         Do not push <base-branch>
+#   -p, --push            Force-push the rebased branches
+#   -r, --remote <name>   Remote used for --push (default: origin)
+#       --no-push         Do not push (the default; cancels an earlier --push)
 #   -n, --dry-run         Print the commands instead of running them
 #   -y, --yes             Do not ask for confirmation
 #   -h, --help            Show this help
@@ -19,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || ec
 . "$SCRIPT_DIR/../lib/git-scripts/common.sh"
 
 remote=origin
-push=1
+push=0
 args=()
 while (($#)); do
 	case $1 in
@@ -28,6 +33,7 @@ while (($#)); do
 		remote=$2
 		shift
 		;;
+	-p | --push) push=1 ;;
 	--no-push) push=0 ;;
 	-n | --dry-run) DRY_RUN=1 ;;
 	-y | --yes) ASSUME_YES=1 ;;
@@ -56,6 +62,9 @@ shift
 
 require_repo
 is_branch "$base_branch" || die "$base_branch is not a local branch"
+if [[ $push == 1 ]]; then
+	has_remote "$remote" || die "$remote is not a remote"
+fi
 
 refs=()
 while IFS= read -r ref; do
@@ -69,16 +78,16 @@ done < <(list_branches "$@")
 
 info "This will rebase the following branches onto ${green}${base_branch}${nc}:"
 printf '  %s\n' "${refs[@]}"
+if [[ $push == 1 ]]; then
+	info "and force-push them to ${green}${remote}${nc}."
+fi
 [[ $DRY_RUN == 1 ]] || confirm
 
 save_branch
 
-if [[ $push == 1 ]]; then
-	run git push --quiet "$remote" "$base_branch"
-fi
-
 toplevel=$(git rev-parse --show-toplevel)
 failed=()
+push_failed=()
 for ref in "${refs[@]}"; do
 	info ""
 	# A branch checked out in another worktree cannot be checked out here, so
@@ -96,11 +105,27 @@ for ref in "${refs[@]}"; do
 		warn "unable to rebase $ref; aborting its rebase"
 		git -C "$worktree" rebase --abort >/dev/null 2>&1 || true
 		failed+=("$ref")
+		continue
+	fi
+	if [[ $push == 1 ]]; then
+		if ! git show-ref --verify --quiet "refs/remotes/$remote/$ref"; then
+			info "Not pushing ${green}${ref}${nc}: it is not on $remote"
+		elif ! run git push --quiet --force-with-lease "$remote" "$ref"; then
+			warn "unable to push $ref to $remote"
+			push_failed+=("$ref")
+		fi
 	fi
 done
 
+status=0
 if ((${#failed[@]} > 0)); then
 	warn "these branches were not rebased:"
 	printf '  %s\n' "${failed[@]}" >&2
-	exit 1
+	status=1
 fi
+if ((${#push_failed[@]} > 0)); then
+	warn "these branches were rebased but not pushed:"
+	printf '  %s\n' "${push_failed[@]}" >&2
+	status=1
+fi
+exit "$status"
