@@ -32,7 +32,7 @@ man-page lookup instead, so use `-h`, or `git-<name> --help`.)
 
 | Command | What it does |
 |---|---|
-| `git rebase-branches <base> [<prefix>...]` | Push `<base>` (unless `--no-push`), then rebase the matching local branches onto it, including branches checked out in other worktrees |
+| `git rebase-branches <base> [<prefix>...]` | Rebase the matching local branches onto `<base>`, including branches checked out in other worktrees; `-p`/`--push` also force-pushes (with lease) the rebased branches that are already on the remote; `<base>` is never pushed |
 | `git remove-merged-branches [<base> [<prefix>...]]` | Delete local branches merged into `<base>`, removing their linked worktrees (a worktree with uncommitted changes, and its branch, is kept); `-s`/`--squash-aware` also catches squash and rebase merges, and `-p`/`--push` also deletes them on the remote |
 | `git setup-tracking-branches [<prefix>...]` | Set the upstream of each local branch that has none to the same-named branch on the remote (`-f`/`--fetch` fetches first) |
 

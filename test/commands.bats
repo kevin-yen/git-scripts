@@ -149,10 +149,53 @@ load test_helper
 
 @test "colors are suppressed when output is piped" {
 	git branch feature
-	run git rebase-branches --dry-run --no-push main
+	run git rebase-branches --dry-run main
 	[ "$status" -eq 0 ]
 	[[ $output == *feature* ]]
 	[[ $output != *$'\033'* ]]
+}
+
+@test "rebase-branches does not push without --push" {
+	git switch --quiet -c feature
+	commit feature
+	git push --quiet origin feature
+	git switch --quiet main
+	commit base
+	git rebase-branches --yes main feature
+	git merge-base --is-ancestor main feature
+	[ "$(git rev-parse origin/main)" != "$(git rev-parse main)" ]
+	[ "$(git ls-remote origin refs/heads/feature | cut -f1)" != "$(git rev-parse feature)" ]
+}
+
+@test "rebase-branches --push force-pushes only the rebased remote branches" {
+	git switch --quiet -c feature
+	commit feature
+	git push --quiet origin feature
+	git switch --quiet -c local-only main
+	commit local
+	git switch --quiet main
+	commit base
+	old_main=$(git rev-parse origin/main)
+	git rebase-branches --yes --push main
+	[ "$(git ls-remote origin refs/heads/main | cut -f1)" = "$old_main" ]
+	[ "$(git ls-remote origin refs/heads/feature | cut -f1)" = "$(git rev-parse feature)" ]
+	git merge-base --is-ancestor main feature
+	remote_branch_missing local-only
+}
+
+@test "rebase-branches --push does not overwrite commits pushed from elsewhere" {
+	git switch --quiet -c feature
+	commit feature
+	git push --quiet origin feature
+	git switch --quiet main
+	git clone --quiet "$TMP/origin.git" "$TMP/other" 2>/dev/null
+	git -C "$TMP/other" switch --quiet feature
+	(cd "$TMP/other" && commit elsewhere && git push --quiet origin feature)
+	commit base
+	run git rebase-branches --yes --push main
+	[ "$status" -ne 0 ]
+	[[ $output == *"not pushed"* ]]
+	[ "$(git ls-remote origin refs/heads/feature | cut -f1)" = "$(git -C "$TMP/other" rev-parse feature)" ]
 }
 
 @test "setup-tracking-branches tracks only untracked branches with a remote match" {
