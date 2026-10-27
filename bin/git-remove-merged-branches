@@ -12,6 +12,8 @@
 # Options:
 #   -s, --squash-aware    Also delete branches whose changes landed in
 #                         <base-branch> through a rebase or squash merge
+#   -P, --pr-aware        Also delete branches that have a merged pull request
+#                         with the same head branch name (requires gh)
 #   -p, --push            Also delete the branches on the remote
 #   -r, --remote <name>   Remote used for --push and the default branch (default: origin)
 #   -n, --dry-run         List the branches without deleting anything
@@ -25,11 +27,13 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || ec
 
 remote=origin
 squash_aware=0
+pr_aware=0
 push=0
 args=()
 while (($#)); do
 	case $1 in
 	-s | --squash-aware) squash_aware=1 ;;
+	-P | --pr-aware) pr_aware=1 ;;
 	-p | --push) push=1 ;;
 	-r | --remote)
 		(($# > 1)) || die "$1 needs a value"
@@ -118,21 +122,6 @@ while IFS= read -r ref; do
 	merged+=("$ref")
 done < <(git for-each-ref --merged "$base_branch" --format='%(refname:short)' 'refs/heads/' | sort)
 
-candidates=()
-while IFS= read -r ref; do
-	[[ $ref == "$base_branch" || $ref == "$current" || $ref == "$main_wt_branch" ]] && continue
-	if contains "$ref" ${merged[@]+"${merged[@]}"}; then
-		candidates+=("$ref")
-	elif [[ $squash_aware == 1 ]] && landed_in_base "$ref"; then
-		candidates+=("$ref")
-	fi
-done < <(list_branches "$@")
-
-((${#candidates[@]} > 0)) || {
-	info "No merged branches found."
-	exit 0
-}
-
 # Merged pull requests as "<head branch>\t<url>" lines, newest first.
 # Empty when gh is missing, unauthenticated, or the repository is not on GitHub.
 merged_prs=''
@@ -151,6 +140,25 @@ pr_for_branch() {
 			return 0
 		fi
 	done <<<"$merged_prs"
+}
+
+[[ $pr_aware == 0 || -n $merged_prs ]] || die "--pr-aware needs gh to list merged pull requests"
+
+candidates=()
+while IFS= read -r ref; do
+	[[ $ref == "$base_branch" || $ref == "$current" || $ref == "$main_wt_branch" ]] && continue
+	if contains "$ref" ${merged[@]+"${merged[@]}"}; then
+		candidates+=("$ref")
+	elif [[ $squash_aware == 1 ]] && landed_in_base "$ref"; then
+		candidates+=("$ref")
+	elif [[ $pr_aware == 1 && -n $(pr_for_branch "$ref") ]]; then
+		candidates+=("$ref")
+	fi
+done < <(list_branches "$@")
+
+((${#candidates[@]} > 0)) || {
+	info "No merged branches found."
+	exit 0
 }
 
 info "These branches are merged into ${green}${base_branch}${nc} and will be ${yellow}deleted${nc}:"
